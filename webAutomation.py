@@ -5,8 +5,10 @@ PASSWORD = "LGarcia27834"
 # playwright install
 
 import time
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright,expect
 from pathlib import Path
+from datetime import datetime
+
 
 # add at the very top
 # import os, sys
@@ -77,6 +79,16 @@ def pressingButton(page):
     btnActions.click()
 
 # -------------------------------------------------------------------------------------------------
+
+def wait_for_load_completed(page):
+    # Wait until the span shows 'Load Completed'
+    # print("Wait started ",datetime.now())
+    done = page.locator("span#button-1162-btnInnerEl")
+    # If that ID changes, use contains-text instead:
+    # done = page.locator("span:has-text('Load Completed')")
+    expect(done).to_have_text("Load Completed", timeout=60000)
+
+
 # starting instance
 with sync_playwright() as playwright:
 
@@ -106,11 +118,15 @@ with sync_playwright() as playwright:
 
     # Entering 1000 Records
     changeRecords1000(page)
-    time.sleep(2)
+    time.sleep(1)
+
     btnRefresh(page)
-    time.sleep(10)
+    # time.sleep(1)
+    wait_for_load_completed(page)
+    # print("wait ended",datetime.now())
 
     # ---------------- # Exporting the File -----------
+
     # Pressing the button Actions
     # pressingButton(page)
     btnActions = page.locator("a.x-btn:has(span.x-btn-inner:has-text('Actions'))").first
@@ -134,7 +150,7 @@ with sync_playwright() as playwright:
 
 
     #closing the browser
-    time.sleep(10)
+    time.sleep(5)
     context.close()
     browser.close()
 # -------------------------------------------------------------------------------------------------
