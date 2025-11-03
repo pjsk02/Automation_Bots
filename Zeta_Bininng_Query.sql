@@ -179,3 +179,42 @@ LEFT JOIN
 	BOWAY_FORMAL.PRODUCT_LINE pl2 
 ON 
 	pl2.PRODUCT_LINE_CODE = tp.PRODUCT_LINE_CODE
+
+
+
+------------------- Binning Original Query from Oracle DB ---------------------------------
+
+select
+    distinct trunc(created_timestamp) - (
+        case
+            when (extract(hour from created_timestamp) < 7) then 1
+            else 0
+        end
+    ) as created_shift_date,	
+    MOD(extract(hour from created_timestamp), 12) as created_hour,
+    workbench_code,	
+    count(*) over (partition by trunc(created_timestamp), extract(hour from created_timestamp), workbench_code) as cnt  -- GIves count
+from
+    boway_formal.module_auto_grading
+where
+    trunc(created_timestamp) - (
+        case
+            when (extract(hour from created_timestamp) < 7) then 1
+            else 0
+        END	
+    ) = trunc(sysdate) - (
+    	CASE
+	    	when TO_CHAR(CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York', 'HH24') < 7 THEN 1
+	    	ELSE 0
+	    end
+    )
+    and
+    case
+        when TO_CHAR(CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York', 'HH24') >= 7 and TO_CHAR(CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York', 'HH24') < 19 then 'Day'
+        else 'Night'  -- Night
+    end
+    =
+    case
+        when (extract(hour from created_timestamp) >= 7 and extract(hour from created_timestamp) < 19) then 'Day'
+        else 'Night'   -- Night
+    END
